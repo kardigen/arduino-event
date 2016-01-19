@@ -46,7 +46,8 @@ boolean EventManager::trigger(Event* evt)
     {
       // Execute event
       boolean result = sub->task->execute(evt);
-      delete evt;
+      if(result == false)
+      { delete evt;}
       return result;
     }  
   }
