@@ -30,7 +30,7 @@ struct Event
  */
 struct EventTask
 {
-  virtual void execute(Event evt) = 0;
+  virtual boolean execute(Event* evt) = 0;
 };
 
 /**
@@ -53,8 +53,8 @@ struct Subscriber
  */
 struct TimedTask
 {
-  TimedTask() : ms(0), evt(NULL) , alive(false), current(0)  {}
-  TimedTask(unsigned long cMs, Event cEvt) : ms(cMs), evt(cEvt) , alive(true), current(60)  {}
+  TimedTask() : ms(0), evt(NULL) , alive(false), cyclic(false), current(0)  {}
+  TimedTask(unsigned long cMs, Event* cEvt) : ms(cMs), evt(cEvt), cyclic(false), alive(true), current(60)  {}
   
   /**
    * Evaluates the state of the timed task and if
@@ -74,8 +74,9 @@ struct TimedTask
   
   unsigned long ms;
   unsigned long current;
-  Event evt;
+  Event* evt;
   boolean alive; // State of the timed task
+  boolean cyclic;
 };
 
 /**
@@ -88,14 +89,13 @@ class EventManager
   public:
     EventManager();
     void subscribe(Subscriber sub);
-    void trigger(Event evt);
+    boolean trigger(Event* evt);
     void triggerInterval(TimedTask timed);
     void tick();
   private:
     TimedTask _interval[5]; // 5 available interval slots
     unsigned int _intervalSize;
-    unsigned int _intervalPos;
-    Subscriber _sub[10]; // 10 available subscriber slots
+    Subscriber _sub[5]; // 5 available subscriber slots
     unsigned int _subSize;
     unsigned int _subPos;
     unsigned long _previousMs;

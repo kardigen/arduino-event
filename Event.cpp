@@ -16,8 +16,6 @@
 EventManager::EventManager()
 {
   _intervalSize = sizeof(_interval) / sizeof(TimedTask);
-  _intervalPos = 0;
-  
   _subSize = sizeof(_sub) / sizeof(Subscriber);
 }
 
@@ -38,18 +36,21 @@ void EventManager::subscribe(Subscriber sub)
  * Triggers a specified event which will find the applicable
  * Subscriber and execute it's EventTask
  */
-void EventManager::trigger(Event evt)
+boolean EventManager::trigger(Event* evt)
 {
   for (int i = 0; i < _subSize; i++)
   {
     Subscriber *sub = &_sub[i];
     
-    if ((String) sub->label == (String) evt.label)
+    if ((String) sub->label == (String) evt->label)
     {
       // Execute event
-      sub->task->execute(evt);
+      boolean result = sub->task->execute(evt);
+      delete evt;
+      return result;
     }  
   }
+  return false;
 }
 
 /**
@@ -58,10 +59,16 @@ void EventManager::trigger(Event evt)
  */
 void EventManager::triggerInterval(TimedTask task)
 {
-  if (_intervalSize >= _intervalPos)
+    
+    
+  for (int i = 0; i < _intervalSize; i++)
   {
-    _interval[_intervalPos] = task;
-    _intervalPos++;
+    //insert task in first free slot
+    if(!_interval[i].alive)
+    {
+      _interval[i] = task;
+      break;
+    }
   }
 }
 
@@ -81,12 +88,11 @@ void EventManager::tick()
     if (task->alive)
     {
       task->current = task->current + difference;
-      
       if (task->eval())
       {
         // Run the timed event when it evalutes to
-        // ready.
-        trigger(task->evt);
+        // ready. If return true, we want event to be cyclic
+        task->alive = trigger(task->evt);
       }
     }
   }
