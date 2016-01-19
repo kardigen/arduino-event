@@ -91,6 +91,7 @@ class EventManager
     void subscribe(Subscriber sub);
     boolean trigger(Event* evt);
     void triggerInterval(TimedTask timed);
+    void disableTimedTask(const char * label);
     void tick();
   private:
     TimedTask _interval[5]; // 5 available interval slots

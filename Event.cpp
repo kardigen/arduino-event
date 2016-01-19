@@ -4,7 +4,6 @@
   This class serves as a "callback" manager to register events
   to happen on certain triggers or after certain intervals.
  */
- 
 #include "Arduino.h"
 #include "Event.h"
 
@@ -60,14 +59,31 @@ boolean EventManager::trigger(Event* evt)
  */
 void EventManager::triggerInterval(TimedTask task)
 {
-    
-    
   for (int i = 0; i < _intervalSize; i++)
   {
     //insert task in first free slot
     if(!_interval[i].alive)
     {
       _interval[i] = task;
+      break;
+    }
+  }
+}
+
+/**
+ * Setup a timed trigger that will execute an
+ * event after a couple of milliseconds.
+ */
+void EventManager::disableTimedTask(const char * label)
+{
+  for (int i = 0; i < _intervalSize; i++)
+  {
+    //insert task in first free slot
+    if(_interval[i].alive && _interval[i].evt != NULL 
+           && 0 == strcmp(_interval[i].evt->label,label))
+    {
+      _interval[i].alive = false;
+      delete _interval[i].evt;
       break;
     }
   }
